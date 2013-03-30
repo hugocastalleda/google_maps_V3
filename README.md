@@ -2,7 +2,9 @@ google_maps_V3
 ==============
 
 
-[![logo](https://https://raw.github.com/hugocastalleda/google_maps_V3/master/Captura1.PNG)](#logo)
+[![logo](https://raw.github.com/hugocastalleda/google_maps_V3/master/Captura1.PNG)](#logo)
+
+[![logo](https://raw.github.com/hugocastalleda/google_maps_V3/master/Captura2.PNG)](#logo)
 
 
 En el presente proyecto se implementa la usabilidad de google maps para crear marcas de google para capturar los datos de la geo localización de esta y cargar una imagen de esta posición ya que
