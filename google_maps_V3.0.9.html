@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<title>google_maps_V3</title>
+	<style type="text/css">
+	html {
+		height: 100%
+	}
+	body {
+		height: 100%;
+		margin: 0px;
+		padding: 0px
+	}
+	#map_canvas {
+		width: 70%;
+		height: 80%
+	}
+	</style>
+	<link type="text/css" rel="stylesheet" href="style.css" />
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOaSJCCjdub1TiUOgKRNXpIMUHe7mc0Ys&sensor=true"></script>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script type="text/javascript">
+	
+      /**
+       * carga de la página intiial.
+       */
+       
+       var map;
+       var marker = new google.maps.Marker();
+       var infoWindow = new google.maps.InfoWindow();
+       function init() {
+       	map = new google.maps.Map(document.getElementById('map_canvas'), {
+       		zoom: 14,
+       		center: new google.maps.LatLng(10.98526, -74.80254),
+       		mapTypeId: google.maps.MapTypeId.ROADMAP
+       	});
+
+       	google.maps.event.addListener(map, 'click', findAddress);
+       	
+       }
+
+       function findAddress(event) {
+       	var geocoder = new google.maps.Geocoder();
+       	geocoder.geocode({latLng: event.latLng}, function(results, status) {
+       		if (status == google.maps.GeocoderStatus.OK) {
+       			
+       			if (results[0]) {
+       				var html ="<table class='table'>" +
+       				"<tr><td>Pais:</td> <td><input type='text' "+"value='"+results.slice(-1)[0].address_components.slice(-1)[0].long_name+"'"+"name='pais' id='pais'/> </td> </tr>" +
+       				"<tr><td>Departamento:</td> <td><input type='text' "+"value='"+results.slice(-2)[0].address_components.slice(-2)[0].long_name+"'"+"name='departamento' id='departamento'/> </td> </tr>" +
+       				"<tr><td>Municipio:</td> <td><input type='text' "+"value='"+results.slice(-3)[0].address_components.slice(-3)[0].long_name+"'"+"name='municipio' id='municipio'/> </td> </tr>" +
+       				"<tr><td>Barrio:</td> <td><input type='text' "+"value='"+results.slice(-4)[0].address_components.slice(-4)[0].long_name+"'"+"name='barrio' id='barrio'/> </td> </tr>" +
+       				"<tr><td>Direccion:</td> <td><input type='text' "+"value='"+results[0].formatted_address+"'"+" name='direccion' id='direccion'/></td> </tr>" +
+       				"<tr><td>Type:</td> <td><select id='type'>" +
+       				"<option value='bar' SELECTED>bar</option>" +
+       				"<option value='restaurant'>restaurant</option>" +
+       				"</select> </td></tr>" +
+       				"<tr><td>Image:</td><td>"+
+       				"<span id='errores'></span><div class='content'><span class='btn btn-success fileinput-button' id='cerrar'>"+
+					"<span>Add files...</span><input type='file' id='drop-files' ondragover='return false'></span>"+
+       				"<div id='uploaded-holder'><div id='dropped-files'><div id='upload-button'>"+
+       				"<a href='#' class='upload'>Upload!</a><a href='#' class='delete'>delete</a>"+
+       				"<span>0 Files</span></div></div>"+
+       				"<div id='extra-files'><div class='number'>0</div><div id='file-list'>"+
+       				"<ul></ul></div></div></div>"+
+       				"<div id='loading'><div id='loading-bar'><div class='loading-color'> </div></div>"+
+       				"<div id='loading-content'>Uploading file.jpg</div></div>"+
+       				"<div id='file-name-holder'><ul id='uploaded-files'>"+
+       				"</ul></div></div></td></tr>"+
+       				"</table>";
+       				marker.setPosition(event.latLng);
+       				marker.setMap(map);
+       				infoWindow.setPosition(event.latLng);
+       				infoWindow.setContent(html);
+       				infoWindow.open(map);
+       			}
+       			
+       			
+       			/**/
+       			
+       			$(document).ready(function() {
+       				
+	// Makes sure the dataTransfer information is sent when we
+	// Drop the item in the drop box.
+	jQuery.event.props.push('target');
+	
+	var z = -40;
+	// The number of images to display
+	var maxFiles = 1;
+	var errMessage = 0;
+	
+	// Get all of the data URIs and put them in an array
+	var dataArray = [];
+	
+	// Bind the drop event to the dropzone.
+	$('#drop-files').bind('change', function(e) {
+		
+		// Stop the default action, which is to redirect the page
+		// To the dropped file
+		
+		var files = e.target.files;
+		
+		// Show the upload holder
+		$('#uploaded-holder').show();
+		$('#errores').html('Esto si IMG');
+		
+		// For each file
+		$.each(files, function(index, file) {
+			
+			// Some error messaging
+			if (!files[index].type.match('image.*')) {
+			
+				$('#uploaded-holder').hide();
+				
+				if(errMessage == 0) {
+					$('#errores').html('Hey! Images only');
+					$('#uploaded-holder').hide();
+					++errMessage
+				}
+				else if(errMessage == 1) {
+					$('#errores').html('Stop it! Images only!');
+					$('#uploaded-holder').hide();
+					++errMessage
+				}
+				else if(errMessage == 2) {
+					$('#errores').html("Can't you read?! Images only!");
+					$('#uploaded-holder').hide();
+					++errMessage
+				}
+				else if(errMessage == 3) {
+					$('#errores').html("Fine! Keep dropping non-images.");
+					$('#uploaded-holder').hide();
+					errMessage = 0;
+				}
+				return false;
+			}
+			
+			// Check length of the total image elements
+			
+			if($('#dropped-files > .image').length < maxFiles) {
+				// Change position of the upload button so it is centered
+				var imageWidths = (((40 * $('#dropped-files > .image').length)) / 2) + 10;
+				$('#upload-button').css({'left' : imageWidths+'px', 'display' : 'block'});
+				$('#cerrar').hide();
+			}
+			
+			// Start a new instance of FileReader
+			var fileReader = new FileReader();
+			
+				// When the filereader loads initiate a function
+				fileReader.onload = (function(file) {
+					
+					return function(e) { 
+						
+						// Push the data URI into an array
+						dataArray.push({name : file.name, value : this.result});
+						
+						// Move each image 40 more pixels across
+						z = z+40;
+						var image = this.result;
+						
+						
+						// Just some grammatical adjustments
+						if(dataArray.length == 1) {
+							$('#upload-button span').html("1 file to be uploaded");
+						} else {
+							$('#upload-button span').html(dataArray.length+" files to be uploaded");
+						}
+						// Place extra files in a list
+						if($('#dropped-files > .image').length < maxFiles) { 
+							// Place the image inside the dropzone
+							$('#dropped-files').append('<div class="image" style="left: '+z+'px; background: url('+image+'); background-size: cover;"> </div>'); 
+						}
+						else {
+							
+							$('#extra-files .number').html('+'+($('#file-list li').length + 1));
+							// Show the extra files dialogue
+							$('#extra-files').show();
+							
+							// Start adding the file name to the file list
+							$('#extra-files #file-list ul').append('<li>'+file.name+'</li>');
+							
+						}
+					}; 
+					
+				})(files[index]);
+				
+			// For data URI purposes
+			fileReader.readAsDataURL(file);
+			
+		});
+
+
+});
+
+function restartFiles() {
+	
+		// This is to set the loading bar back to its default state
+		$('#loading-bar .loading-color').css({'width' : '0%'});
+		$('#loading').css({'display' : 'none'});
+		$('#loading-content').html(' ');
+		// --------------------------------------------------------
+		
+		// We need to remove all the images and li elements as
+		// appropriate. We'll also make the upload button disappear
+		$('#errores').html('');
+		$('#cerrar').show();
+		$('#upload-button').hide();
+		$('#dropped-files > .image').remove();
+		$('#extra-files #file-list li').remove();
+		$('#extra-files').hide();
+		$('#uploaded-holder').hide();
+		
+		// And finally, empty the array/set z to -40
+		dataArray.length = 0;
+		z = -40;
+		
+		return false;
+	}
+	
+	$('#upload-button .upload').click(function() {
+		
+		$("#loading").show();
+		var totalPercent = 100 / dataArray.length;
+		var x = 0;
+		var y = 0;
+		
+		$('#loading-content').html('Uploading '+dataArray[0].name);
+		
+		$.each(dataArray, function(index, file) {	
+			
+			$.post('upload.php', dataArray[index], function(data) {
+				
+				var fileName = dataArray[index].name;
+				++x;
+				
+				// Change the bar to represent how much has loaded
+				$('#loading-bar .loading-color').css({'width' : totalPercent*(x)+'%'});
+				
+				if(totalPercent*(x) == 100) {
+					// Show the upload is complete
+					$('#loading-content').html('Uploading Complete!');
+					
+					// Reset everything when the loading is completed
+					setTimeout(restartFiles, 500);
+					
+				} else if(totalPercent*(x) < 100) {
+					
+					// Show that the files are uploading
+					$('#loading-content').html('Uploading '+fileName);
+					
+				}
+				
+				// Show a message showing the file URL.
+				
+				var dataSplit = data.split(':');
+				var pais = escape(document.getElementById("pais").value);
+				var departamento = escape(document.getElementById("departamento").value);
+				var municipio = escape(document.getElementById("municipio").value);
+				var barrio = escape(document.getElementById("barrio").value);
+				var direccion = escape(document.getElementById("direccion").value);
+				var type = document.getElementById("type").value;
+				var img = dataSplit[0];
+				var latlng = marker.getPosition();
+				var url = "phpsqlinfo_addrow.php?pais=" + pais + "&departamento=" + departamento +
+				"&municipio=" + municipio +"&barrio=" + barrio +"&direccion=" + direccion +
+				"&type=" + type + "&img=" + img + "&lat=" + latlng.lat() + "&lng=" + latlng.lng();
+				downloadUrl(url, function(data, responseCode) {
+					if (responseCode == 200 && data.length <= 1) {
+						marker.setMap(null);
+						infoWindow.close();
+						document.getElementById("message").innerHTML = "Location added. y imagen en img/" + img;
+					}
+				});
+				/*********/	
+			});
+
+});
+
+return false;
+});
+
+	// Just some styling for the drop file container.
+	$('#drop-files').bind('onchange', function() {
+		$(this).css({'box-shadow' : 'inset 0px 0px 20px rgba(0, 0, 0, 0.1)', 'border' : '4px dashed #bb2b2b'});
+		return false;
+	});
+	
+	$('#drop-files').bind('onchange', function() {
+		$(this).css({'box-shadow' : 'none', 'border' : '4px dashed rgba(0,0,0,0.2)'});
+		return false;
+	});
+	
+	// For the file list
+	$('#extra-files .number').toggle(function() {
+		$('#file-list').show();
+	}, function() {
+		$('#file-list').hide();
+	});
+	
+	$('#dropped-files #upload-button .delete').click(restartFiles);
+});
+/**/
+
+
+
+
+
+
+
+
+
+}
+});
+}
+
+function downloadUrl(url, callback) {
+	var request = window.ActiveXObject ?
+	new ActiveXObject('Microsoft.XMLHTTP') :
+	new XMLHttpRequest;
+
+	request.onreadystatechange = function() {
+		if (request.readyState == 4) {
+			request.onreadystatechange = doNothing;
+			callback(request.responseText, request.status);
+		}
+	};
+
+	request.open('GET', url, true);
+	request.send(null);
+}
+
+function doNothing() {}
+/* funciones para guardar */
+      // Register an event listener to fire once when the page finishes loading.
+      google.maps.event.addDomListener(window, 'load', init);
+      </script>
+  </head>
+  <body>
+  	<div id="map_canvas"></div>
+  	<div id="message"></div>
+  </body>
+  </html>

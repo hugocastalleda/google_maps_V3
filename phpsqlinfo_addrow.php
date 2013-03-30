@@ -8,6 +8,7 @@ $municipio = $_GET['municipio'];
 $barrio = $_GET['barrio'];
 $direccion = $_GET['direccion'];
 $type = $_GET['type'];
+$img = $_GET['img'];
 $lat = $_GET['lat'];
 $lng = $_GET['lng'];
 
@@ -26,14 +27,15 @@ if (!$db_selected) {
 
 // Insert new row with user data
 $query = sprintf("INSERT INTO markers " .
-         " (id, pais, departamento, municipio, barrio, direccion, type, lat, lng) " .
-         " VALUES (NULL, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
+         " (id, pais, departamento, municipio, barrio, direccion, type, img, lat, lng) " .
+         " VALUES (NULL, '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');",
          mysql_real_escape_string($pais),
          mysql_real_escape_string($departamento),
 		 mysql_real_escape_string($municipio),
 		 mysql_real_escape_string($barrio),
 		 mysql_real_escape_string($direccion),
 		 mysql_real_escape_string($type),
+		 mysql_real_escape_string($img),
          mysql_real_escape_string($lat),
          mysql_real_escape_string($lng));
 
