@@ -62,10 +62,8 @@
        				"<div id='uploaded-holder'><div id='dropped-files'><div id='upload-button'>"+
        				"<a href='#' class='upload'>Upload!</a><a href='#' class='delete'>delete</a>"+
        				"<span>0 Files</span></div></div>"+
-       				"<div id='extra-files'><div class='number'>0</div><div id='file-list'>"+
-       				"<ul></ul></div></div></div>"+
        				"<div id='loading'><div id='loading-bar'><div class='loading-color'> </div></div>"+
-       				"<div id='loading-content'>Uploading file.jpg</div></div>"+
+       				"<div id='loading-content'></div></div>"+
        				"<div id='file-name-holder'><ul id='uploaded-files'>"+
        				"</ul></div></div></td></tr>"+
        				"</table>";
@@ -153,8 +151,23 @@
 					
 					return function(e) { 
 						
+						var latlng = marker.getPosition();
 						// Push the data URI into an array
-						dataArray.push({name : file.name, value : this.result});
+						var datos = {
+							name : file.name,
+							value : this.result,
+							pais : (document.getElementById("pais").value),
+							departamento : (document.getElementById("departamento").value),
+							municipio : (document.getElementById("municipio").value),
+							barrio : (document.getElementById("barrio").value),
+							direccion : (document.getElementById("direccion").value),
+							type : document.getElementById("type").value,
+							lat : latlng.lat(),
+							lng : latlng.lng(),
+						};
+						
+						//dataArray.push({name : file.name, value : this.result});
+						dataArray.push( datos );
 						
 						// Move each image 40 more pixels across
 						z = z+40;
@@ -226,11 +239,11 @@ function restartFiles() {
 		var x = 0;
 		var y = 0;
 		
-		$('#loading-content').html('Uploading '+dataArray[0].name);
+		//$('#loading-content').html('Uploading '+dataArray[0].name);
 		
 		$.each(dataArray, function(index, file) {	
 			
-			$.post('upload.php', dataArray[index], function(data) {
+			$.post('phpsqlinfo_addrow.php', dataArray[index], function(data) {
 				
 				var fileName = dataArray[index].name;
 				++x;
@@ -240,40 +253,22 @@ function restartFiles() {
 				
 				if(totalPercent*(x) == 100) {
 					// Show the upload is complete
-					$('#loading-content').html('Uploading Complete!');
+					//$('#loading-content').html('Uploading Complete!');
 					
 					// Reset everything when the loading is completed
-					setTimeout(restartFiles, 500);
+					
+					marker.setMap(null);
+					infoWindow.close();
+					document.getElementById("message").innerHTML = "Location added. y imagen en img/";
+					setTimeout(restartFiles, 200);
 					
 				} else if(totalPercent*(x) < 100) {
 					
 					// Show that the files are uploading
-					$('#loading-content').html('Uploading '+fileName);
+					//$('#loading-content').html('Uploading '+fileName);
 					
 				}
 				
-				// Show a message showing the file URL.
-				
-				var dataSplit = data.split(':');
-				var pais = escape(document.getElementById("pais").value);
-				var departamento = escape(document.getElementById("departamento").value);
-				var municipio = escape(document.getElementById("municipio").value);
-				var barrio = escape(document.getElementById("barrio").value);
-				var direccion = escape(document.getElementById("direccion").value);
-				var type = document.getElementById("type").value;
-				var img = dataSplit[0];
-				var latlng = marker.getPosition();
-				var url = "phpsqlinfo_addrow.php?pais=" + pais + "&departamento=" + departamento +
-				"&municipio=" + municipio +"&barrio=" + barrio +"&direccion=" + direccion +
-				"&type=" + type + "&img=" + img + "&lat=" + latlng.lat() + "&lng=" + latlng.lng();
-				downloadUrl(url, function(data, responseCode) {
-					if (responseCode == 200 && data.length <= 1) {
-						marker.setMap(null);
-						infoWindow.close();
-						document.getElementById("message").innerHTML = "Location added. y imagen en img/" + img;
-					}
-				});
-				/*********/	
 			});
 
 });
@@ -301,35 +296,10 @@ return false;
 	
 	$('#dropped-files #upload-button .delete').click(restartFiles);
 });
-/**/
-
-
-
-
-
-
-
-
-
 }
 });
 }
 
-function downloadUrl(url, callback) {
-	var request = window.ActiveXObject ?
-	new ActiveXObject('Microsoft.XMLHTTP') :
-	new XMLHttpRequest;
-
-	request.onreadystatechange = function() {
-		if (request.readyState == 4) {
-			request.onreadystatechange = doNothing;
-			callback(request.responseText, request.status);
-		}
-	};
-
-	request.open('GET', url, true);
-	request.send(null);
-}
 
 function doNothing() {}
 /* funciones para guardar */
